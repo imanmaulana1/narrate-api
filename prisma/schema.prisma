@@ -1,0 +1,213 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  clerkId      String   @unique
+  username     String   @unique
+  name         String
+  email        String   @unique
+  bio          String?
+  profileImage String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  articles  Article[]
+  comments  Comment[]
+  likes     Like[]
+  bookmarks Bookmark[]
+
+  totalArticles Int @default(0)
+  totalComments Int @default(0)
+  totalLikes    Int @default(0)
+
+  followers      Follow[] @relation("following")
+  following      Follow[] @relation("follower")
+  totalFollowers Int      @default(0)
+  totalFollowing Int      @default(0)
+
+  collections Collection[]
+
+  notifications     Notification[] @relation("UserNotifications")
+  sentNotifications Notification[] @relation("SenderNotifications")
+
+  @@index([username])
+  @@index([clerkId])
+}
+
+model Article {
+  id         String        @id @default(uuid())
+  title      String
+  slug       String        @unique
+  content    String        @db.Text
+  excerpt    String        @db.Text
+  coverImage String?
+  status     ArticleStatus @default(DRAFT)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  author    User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId  String
+  comments  Comment[]
+  likes     Like[]
+  bookmarks Bookmark[]
+
+  notifications Notification[] @relation("ArticleNotifications")
+
+  viewCount     Int               @default(0)
+  totalLikes    Int               @default(0)
+  totalComments Int               @default(0)
+  readingTime   Int               @default(0)
+  categories    ArticleCategory[]
+
+  @@index([slug])
+  @@index([authorId, createdAt])
+  @@index([status, createdAt])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author    User    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId  String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  articleId String
+
+  parentId String?
+  parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  Comment[] @relation("CommentReplies")
+
+  notifications Notification[] @relation("CommentNotifications")
+
+  totalReplies Int @default(0)
+
+  @@index([articleId, createdAt])
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  articleId String
+
+  @@unique([userId, articleId])
+}
+
+model Bookmark {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  article      Article    @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  articleId    String
+  collection   Collection @relation(fields: [collectionId], references: [id])
+  collectionId String
+
+  @@unique([userId, articleId, collectionId])
+}
+
+model Collection {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  isPublic    Boolean  @default(false)
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner     User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId   String
+  bookmarks Bookmark[]
+
+  totalBookmarks Int @default(0)
+
+  @@unique([ownerId, name])
+}
+
+model Follow {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  follower    User   @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  followerId  String
+  following   User   @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+  followingId String
+
+  @@unique([followerId, followingId])
+}
+
+model Category {
+  id          String  @id @default(uuid())
+  name        String  @unique
+  slug        String  @unique
+  description String?
+
+  totalArticles   Int               @default(0)
+  ArticleCategory ArticleCategory[]
+
+  @@index([slug])
+}
+
+model ArticleCategory {
+  articleId  String
+  categoryId String
+  article    Article  @relation(fields: [articleId], references: [id])
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  @@id([articleId, categoryId])
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  type      NotificationType
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user   User   @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  sender   User?   @relation("SenderNotifications", fields: [senderId], references: [id], onDelete: SetNull)
+  senderId String?
+
+  article   Article? @relation("ArticleNotifications", fields: [articleId], references: [id], onDelete: Cascade)
+  articleId String?
+
+  comment   Comment? @relation("CommentNotifications", fields: [commentId], references: [id], onDelete: Cascade)
+  commentId String?
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+}
+
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum NotificationType {
+  LIKE
+  COMMENT
+  REPLY
+  FOLLOW
+  MENTION
+  NEW_ARTICLE
+}
