@@ -1,10 +1,15 @@
-import express from 'express';
-import { verifyClerkWebhook } from '../../middlewares/clerk-webhook.middleware.js';
+import { Router } from 'express';
+import { verifyClerkWebhook } from '../../middlewares/clerk.middleware.js';
 import { handleWebhook } from './webhook.controller.js';
 import bodyParser from 'body-parser';
 
-const router = express.Router();
+const router = Router();
 
-router.post('/webhooks',  bodyParser.raw({ type: 'application/json' }), verifyClerkWebhook, handleWebhook);
+router.post(
+  '/webhooks',
+  bodyParser.raw({ type: 'application/json' }),
+  verifyClerkWebhook,
+  handleWebhook
+);
 
 export default router;

@@ -1,10 +1,8 @@
 import { Webhook } from 'svix';
+import { SIGNING_SECRET } from '../config/env.js';
 
 export const verifyClerkWebhook = async (req, res, next) => {
-  const SIGNING_SECRET = process.env.SIGNING_SECRET;
-
   if (!SIGNING_SECRET) {
-    console.log('error signing secret');
     return res.status(500).json({
       success: false,
       message: 'Error: Please add SIGNING_SECRET from Clerk Dashboard to .env',
