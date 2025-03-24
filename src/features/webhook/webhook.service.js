@@ -5,8 +5,6 @@ export const processWebhookEvent = async (event) => {
   try {
     let result;
 
-    console.log(data)
-
     switch (type) {
       case 'user.created':
         result = await createUser(data);
