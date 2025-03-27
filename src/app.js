@@ -7,7 +7,7 @@ import helmet from 'helmet';
 import { PORT } from './config/env.js';
 
 import webhookRoutes from './features/webhook/webhook.route.js';
-import categoryRoutes from './features/category/category.route.js';
+import tagRoutes from './features/tag/tag.route.js';
 
 import errorMiddleware from './middlewares/error.middleware.js';
 
@@ -21,7 +21,7 @@ app.use(helmet());
 app.use(express.json());
 
 app.use('/api/v1', webhookRoutes);
-app.use('/api/v1/categories', categoryRoutes);
+app.use('/api/v1/tags', tagRoutes);
 
 app.use(errorMiddleware);
 

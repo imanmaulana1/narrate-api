@@ -70,7 +70,7 @@ model Article {
   totalLikes    Int               @default(0)
   totalComments Int               @default(0)
   readingTime   Int               @default(0)
-  categories    ArticleCategory[]
+  tags    ArticleTag[]
 
   @@index([slug])
   @@index([authorId, createdAt])
@@ -155,25 +155,25 @@ model Follow {
   @@unique([followerId, followingId])
 }
 
-model Category {
+model Tag {
   id          String  @id @default(uuid())
   name        String  @unique
   slug        String  @unique
   description String?
 
   totalArticles   Int               @default(0)
-  ArticleCategory ArticleCategory[]
+  ArticleTag ArticleTag[]
 
   @@index([slug])
 }
 
-model ArticleCategory {
+model ArticleTag {
   articleId  String
-  categoryId String
+  tagId String
   article    Article  @relation(fields: [articleId], references: [id])
-  category   Category @relation(fields: [categoryId], references: [id])
+  tag   Tag @relation(fields: [tagId], references: [id])
 
-  @@id([articleId, categoryId])
+  @@id([articleId, tagId])
 }
 
 model Notification {
@@ -209,5 +209,4 @@ enum NotificationType {
   REPLY
   FOLLOW
   MENTION
-  NEW_ARTICLE
 }
