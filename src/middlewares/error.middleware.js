@@ -1,9 +1,8 @@
 import { ZodError } from 'zod';
 import { Prisma } from '@prisma/client';
-
-import AppError from '../errors/appError.js';
-import ConflictError from '../errors/conflictError.js';
-import BadRequestError from '../errors/badRequestError.js';
+import AppError from '../errors/app.error.js';
+import ConflictError from '../errors/conflict.error.js';
+import BadRequestError from '../errors/bad-request.error.js';
 
 const errorHandler = (err, req, res, next) => {
   if (err instanceof ZodError) {
@@ -18,6 +17,8 @@ const errorHandler = (err, req, res, next) => {
       details
     );
   }
+
+  console.log(err);
 
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
     switch (err.code) {

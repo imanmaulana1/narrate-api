@@ -6,7 +6,7 @@ import bodyParser from 'body-parser';
 const router = Router();
 
 router.post(
-  '/webhooks',
+  '/',
   bodyParser.raw({ type: 'application/json' }),
   verifyClerkWebhook,
   handleWebhook
