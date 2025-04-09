@@ -1,5 +1,5 @@
 import { findAllTags } from './tag.repository.js';
 
-export const fetchTagsService = (limit) => {
-  return findAllTags(limit);
+export const fetchTagsService = async (limit, search) => {
+  return await findAllTags(limit, search);
 };
