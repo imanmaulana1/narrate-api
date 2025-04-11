@@ -1,8 +1,13 @@
 import asyncHandler from 'express-async-handler';
-import { createArticleService, deleteTempImages } from './article.service.js';
+import {
+  createArticle,
+  deleteTempImages,
+  getRecentArticles,
+  getFollowingArticles,
+} from './article.service.js';
 import BadRequestError from '../../errors/bad-request.error.js';
 
-export const createArticleController = asyncHandler(async (req, res, next) => {
+export const createArticleHandler = asyncHandler(async (req, res, next) => {
   const { title, content, excerpt, tags, coverImage, tempImages, status } =
     req.body;
 
@@ -12,7 +17,7 @@ export const createArticleController = asyncHandler(async (req, res, next) => {
     throw new BadRequestError('Please provide title, content, tags');
   }
 
-  if (title.length <= 5) {
+  if (title.length < 5) {
     throw new BadRequestError('Title must be at least 5 characters');
   }
 
@@ -34,7 +39,7 @@ export const createArticleController = asyncHandler(async (req, res, next) => {
     await deleteTempImages(tempImages, coverImage);
   }
 
-  const article = await createArticleService({
+  const article = await createArticle({
     title,
     content,
     tags,
@@ -52,3 +57,49 @@ export const createArticleController = asyncHandler(async (req, res, next) => {
         : 'Your article has been published 📝',
   });
 });
+
+export const getRecentArticlesHandler = asyncHandler(
+  async (req, res, next) => {
+    const { id: currentId } = req.user;
+    const { limit, page } = req.query;
+
+    const limitValue = parseInt(limit) || 20;
+    const pageValue = parseInt(page) || 1;
+
+    const data = await getRecentArticles(limitValue, pageValue, currentId);
+
+    res.status(200).json({
+      success: true,
+      message: 'Articles fetched successfully',
+      data,
+      meta: {
+        totalItems: data.length,
+        currentPage: pageValue,
+        totalPages: Math.ceil(data.length / limitValue),
+      },
+    });
+  }
+);
+
+export const getFollowingArticlesHandler = asyncHandler(
+  async (req, res, next) => {
+    const { id: currentId } = req.user;
+    const { limit, page } = req.query;
+
+    const limitValue = parseInt(limit) || 20;
+    const pageValue = parseInt(page) || 1;
+
+    const data = await getFollowingArticles(limitValue, pageValue, currentId);
+
+    res.status(200).json({
+      success: true,
+      message: 'Articles fetched successfully',
+      data,
+      meta: {
+        totalItems: data.length,
+        currentPage: pageValue,
+        totalPages: Math.ceil(data.length / limitValue),
+      },
+    });
+  }
+);

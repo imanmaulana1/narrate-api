@@ -18,8 +18,6 @@ const errorHandler = (err, req, res, next) => {
     );
   }
 
-  console.log(err);
-
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
     switch (err.code) {
       case 'P2002':
@@ -65,6 +63,8 @@ const errorHandler = (err, req, res, next) => {
       },
     });
   }
+
+  console.log(err);
 
   return res.status(500).json({
     success: false,

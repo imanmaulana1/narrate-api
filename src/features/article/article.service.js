@@ -1,18 +1,39 @@
 import slugify from 'slugify';
 import cloudinary from '../../config/cloudinary.js';
 import { generateReadingTime } from '../../utils/helper.js';
-import { createArticle } from './article.repository.js';
+import {
+  saveArticle,
+  findRecentArticles,
+  findFollowingArticles,
+} from './article.repository.js';
 
-export const fetchArticlesService = async (limit, search) => {
-  return await prisma.article.findMany({
-    where: search
-      ? { title: { contains: search, mode: 'insensitive' } }
-      : undefined,
-    take: limit || undefined,
-  });
+export const getRecentArticles = async (limit, page, currentId) => {
+  const data = await findRecentArticles(limit, page, currentId);
+
+  const recentArticleData = data.map(
+    ({ authorId, content, status, viewCount, updatedAt, likes, ...rest }) => ({
+      ...rest,
+      isLiked: currentId ? likes.length > 0 : false,
+    })
+  );
+
+  return recentArticleData;
 };
 
-export const createArticleService = async (data) => {
+export const getFollowingArticles = async (limit, page, currentId) => {
+  const data = await findFollowingArticles(limit, page, currentId);
+
+  const followingArticleData = data.map(
+    ({ authorId, content, status, viewCount, updatedAt, likes, ...rest }) => ({
+      ...rest,
+      isLiked: currentId ? likes.length > 0 : false,
+    })
+  );
+
+  return followingArticleData;
+};
+
+export const createArticle = async (data) => {
   const slug = slugify(data.title, { lower: true, strict: true });
 
   const tags = data.tags.map((tag) => ({
@@ -30,7 +51,7 @@ export const createArticleService = async (data) => {
     readingTime,
   };
 
-  const article = await createArticle(payload);
+  const article = await saveArticle(payload);
 
   return article.status;
 };

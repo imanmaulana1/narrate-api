@@ -10,8 +10,9 @@ import { PORT } from './config/env.js';
 import webhookRoutes from './features/webhook/webhook.route.js';
 import tagRoutes from './features/tag/tag.route.js';
 import articleRoutes from './features/article/article.route.js';
+import sidebarRoutes from './features/sidebar/sidebar.route.js';
 
-import errorMiddleware from './middlewares/error.middleware.js';
+import errorHandler from './middlewares/error.middleware.js';
 
 const app = express();
 
@@ -26,8 +27,9 @@ app.use(clerkMiddleware());
 app.use('/api/v1/webhooks', webhookRoutes);
 app.use('/api/v1/tags', tagRoutes);
 app.use('/api/v1/articles', articleRoutes);
+app.use('/api/v1/sidebar', sidebarRoutes);
 
-app.use(errorMiddleware);
+app.use(errorHandler);
 
 // ROUTE LAINNYA NANTI
 
